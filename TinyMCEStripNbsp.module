@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * TinyMCE replace nbsp with regular whitespace
+ *
+ * Only nbsp preceeded with a whitespace will get replaced, this leaves
+ * single non breaking space only between words
+ *
+ * ProcessWire 2.x
+ * Copyright (C) 2012 by Ryan Cramer
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ *
+ */
+
+class TinyMCEStripNbsp extends WireData implements Module{
+
+    public static function getModuleInfo() {
+        return array(
+            'title' => 'Unicode &nbsp (x00a0) Stripper',
+            'version' => 100,
+            'summary' => "Replaces the Unicode non-breaking space character /\s\x{00a0}/u with a regular space for all InputfieldTinyMCE when saving.",
+            'autoload' => true
+        );
+    }
+
+    public function init(){
+        $this->addHookAfter('InputfieldTinyMCE::processInput', $this, 'hookFixNBSP');
+    }
+
+    public function hookFixNBSP(HookEvent $event){
+        $value = $event->object->value;
+        // replace only nbsp with a preceeding space
+        // this ensures nbsp to not wrap words still works
+        $value = trim( preg_replace('/\s\x{00a0}/siu', " ", $value) );
+        $event->object->value = $value;
+    }
+}
